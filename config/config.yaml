@@ -1,0 +1,8 @@
+# Snakemake config file for ML_pipeline_microbiome
+
+# Setting parameters for running the pipeline
+model: Decision_Tree
+seed: 1
+outcome: dx
+data: test/data/small_input_data.csv
+hyper: test/data/hyperparams.csv

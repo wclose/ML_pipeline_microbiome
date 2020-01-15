@@ -5,8 +5,8 @@
 
 # Purpose: Snakemake workflow for controlling ML microbiome pipeline
 
-# # Path to config if needed
-# configfile: "../../config/config.yaml"
+# Path to configfile
+configfile: "config/config.yaml"
 
 # Master rule for controlling workflow.
 rule all:
@@ -27,12 +27,12 @@ rule all:
 rule runModel:
 	input:
 		script="code/R/main.R",
-		data="test/data/small_input_data.csv",
-		hyper="test/data/hyperparams.csv"
+		data=config["data"],
+		hyper=config["hyper"]
 	params:
-		model="Decision_Tree",
-		seed=1,
-		outcome="dx"
+		model=config["model"],
+		seed=config["seed"],
+		outcome=config["outcome"]
 	output:
 		results="test.txt",
 	conda:
