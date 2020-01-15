@@ -49,17 +49,31 @@ pipeline <- function(data, model, split_number, outcome=NA, hyperparameters=NULL
     if(!outcome %in% colnames(data)){
       stop(paste('Outcome',outcome,'not in column names of data.'))
     }
+
+		# Let's make sure that the first column in the data frame is the outcome variable
+		temp_data <- data.frame(outcome = data[,outcome])
+		colnames(temp_data) <- outcome
+		data <- cbind(temp_data, data[, !(colnames(data) %in% outcome)]) # want the outcome column to appear first
   }
 
   # ------------------Pre-process the full data------------------------->
   # We are doing the pre-processing to the full data and then splitting 80-20
   # Scale all features between 0-1
-  preProcValues <- preProcess(data, method = "range")
-  dataTransformed <- predict(preProcValues, data)
-  # ----------------------------------------------------------------------->
 
+	# Identify those columns that have no variance and then remove them. the following code assumes
+	# that the data frame has the outcome variable column first, as was set in the if-else code block
+	# above. This helps us avoid a nuisance warning that OTUs have zero variance.
+	non_zero_variance_cols <- logical()
+	non_zero_variance_cols[outcome] <- TRUE
+	non_zero_variance_cols <- c(non_zero_variance_cols, apply(data[,2:ncol(data)], 2, sd) != 0)
+	data <- data[,non_zero_variance_cols]
+
+  preProcValues <- preProcess(data, method = "range")	# grab these columns
+  dataTransformed <- predict(preProcValues, data)
+
+  # ----------------------------------------------------------------------->
   # Get outcome variables
-  first_outcome = as.character(data[,outcome][1])
+  first_outcome = as.character(data[1,outcome])
   outcome_vals = unique(data[,outcome])
   if(length(outcome_vals) != 2) stop('A binary outcome variable is required.')
   second_outcome = as.character(outcome_vals[!outcome_vals == first_outcome])
@@ -197,12 +211,18 @@ pipeline <- function(data, model, split_number, outcome=NA, hyperparameters=NULL
     rpartProbs <- predict(trained_model, testTransformed, type="prob")
     test_roc <- roc(ifelse(testTransformed[,outcome] == first_outcome, 1, 0), rpartProbs[[1]])
     test_auc <- test_roc$auc
+
+    # Calculate sensitivity and specificity for 0.5 decision threshold.
+    p_class <- ifelse(rpartProbs$cancer > 0.5, "cancer", "normal")
+    r <- confusionMatrix(as.factor(p_class), testTransformed$dx)
+    sensitivity <- r$byClass[[1]]
+    specificity <- r$byClass[[2]]
   }
 
   # ---------------------------------------------------------------------------------->
 
   # ----------------------------Save metrics as vector ------------------------------->
   # Return all the metrics
-  results <- list(cv_auc, test_auc, results_individual, feature_importance_non_cor, feature_importance_cor, trained_model)
+  results <- list(cv_auc, test_auc, results_individual, feature_importance_non_cor, feature_importance_cor, trained_model, sensitivity, specificity)
   return(results)
 }
