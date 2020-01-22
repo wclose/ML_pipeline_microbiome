@@ -11,7 +11,8 @@ configfile: "config/config.yaml"
 # Master rule for controlling workflow.
 rule all:
 	input:
-		"test.txt"
+		expand("data/process/combined_sensspec_results_{model}.csv",
+			model = config["model"])
 
 
 
@@ -34,7 +35,8 @@ rule runModel:
 		seed=config["seed"],
 		outcome=config["outcome"]
 	output:
-		results="test.txt",
+		results=expand("data/process/combined_sensspec_results_{model}.csv",
+			model = config["model"])
 	conda:
 		"envs/ml.yml"
 	shell:
