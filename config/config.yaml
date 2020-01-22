@@ -1,7 +1,7 @@
 # Snakemake config file for ML_pipeline_microbiome
 
 # Setting parameters for running the pipeline
-model: L2_Logisitic_Regression
+model: L2_Logistic_Regression
 seed: 1
 outcome: dx
 data: test/data/small_input_data.csv
