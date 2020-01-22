@@ -36,7 +36,7 @@ rule runModel:
 	output:
 		results="test.txt",
 	conda:
-		"envs/ml.yaml"
+		"envs/ml.yml"
 	shell:
 		"Rscript {input.script} --seed {params.seed} --model {params.model} --data  {input.data} --hyperparams {input.hyper} --outcome {params.outcome}"
 
