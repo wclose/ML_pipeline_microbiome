@@ -11,7 +11,7 @@ configfile: "config/config.yaml"
 # Master rule for controlling workflow.
 rule all:
 	input:
-		expand("data/process/combined_sensspec_results_{model}.csv",
+		expand("data/temp/best_hp_results_{model}_1.csv",
 			model = config["model"])
 
 
@@ -35,11 +35,14 @@ rule runModel:
 		seed=config["seed"],
 		outcome=config["outcome"]
 	output:
-		results=expand("data/process/combined_sensspec_results_{model}.csv",
+		results=expand("data/temp/best_hp_results_{model}_1.csv",
 			model = config["model"])
+		# expand("data/process/combined_sensspec_results_{model}.csv",
+		# 	model = config["model"])
 	conda:
 		"envs/ml.yml"
 	shell:
 		"Rscript {input.script} --seed {params.seed} --model {params.model} --data  {input.data} --hyperparams {input.hyper} --outcome {params.outcome}"
 
 
+# Add rule for concatenating results
